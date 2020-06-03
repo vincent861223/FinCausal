@@ -56,7 +56,7 @@ class FinCausalDataset(Dataset):
                     self.data.append({"id": token[0], "text": token[1], "index": self.sentenceToIndex(token[1])})
 
     def sentenceToIndex(self, sentence, add_special_tokens=True):
-        return self.tokenizer.encode(text=sentence, add_special_tokens=add_special_tokens, pad_to_max_length=True)
+        return self.tokenizer.encode(text=sentence, add_special_tokens=add_special_tokens, max_length=128, pad_to_max_length=True)
 
     def collate_fn(self, datas):
         batch = {} 

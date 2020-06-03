@@ -13,12 +13,12 @@ def main(config):
 
     # setup data_loader instances
     data_loader = getattr(module_data, config['data_loader']['type'])(
-        config['data_loader']['args']['data_dir'],
-        batch_size=512,
+        "data/test.csv",
+        batch_size=16,
         shuffle=False,
         validation_split=0.0,
         training=False,
-        num_workers=2
+        num_workers=6
     )
 
     # build model architecture
@@ -45,12 +45,12 @@ def main(config):
     total_metrics = torch.zeros(len(metric_fns))
 
     output_file = open("submit.csv", 'w')
-    ouput_file.write("Index,Gold\n")
+    output_file.write("Index,Gold\n")
 
     with torch.no_grad():
         for i, batch in enumerate(tqdm(data_loader)):
             ids = batch['id']
-            data = batch['index'].to(self.device)
+            data = batch['index'].to(device)
 
 
             output = model(data)
