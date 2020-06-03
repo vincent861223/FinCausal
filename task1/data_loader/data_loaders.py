@@ -34,7 +34,7 @@ class FinCausalDataset(Dataset):
         self.data = []
         self.train = train
         self.test = test
-        self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+        self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", do_lower_case=True)
         self.loadData(datapath, train=self.train, test=self.test)
         
 
@@ -63,7 +63,7 @@ class FinCausalDataset(Dataset):
         batch["id"] = [data["id"] for data in datas]
         batch["text"] = [data["text"] for data in datas]
         batch["index"] = torch.tensor([data["index"] for data in datas])
-        batch["gold"] = torch.tensor([data["gold"] for data in datas])
+        if self.train: batch["gold"] = torch.tensor([data["gold"] for data in datas])
         return batch
             
 

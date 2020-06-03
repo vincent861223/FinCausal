@@ -41,19 +41,28 @@ class Trainer(BaseTrainer):
         self.train_metrics.reset()
         data_loader = tqdm(self.data_loader, desc='training')
         for batch_idx, batch in enumerate(data_loader):
-            data, target = batch['index'].to(self.device), batch['gold'].to(self.device)
+            input_ids, cause_start, cause_end, effect_start, effect_end = batch['input_ids'], batch['cause_start'], batch['cause_end'], batch['effect_start'], batch['effect_end']
+            input_ids = input_ids.to(self.device)
+            cause_start = cause_start.to(self.device)
+            cause_end = cause_end.to(self.device)
+            effect_start = effect_start.to(self.device)
+            effect_end = effect_end.to(self.device)
+            position = {'cause_start': cause_start, 'cause_end':cause_end, 'effect_start': effect_start, 'effect_end': effect_end}
 
             self.optimizer.zero_grad()
-            output = self.model(data, target)
-            # loss = self.criterion(output, target)
-            loss = output[0]
+            loss, score= self.model(input_ids, **position)
             loss.backward()
             self.optimizer.step()
+
+            # print(cause_start)
+            # print(score['cause_start'])
+            # print(torch.max(score['cause_start'], dim=-1))
+            # print(torch.argmax(score['cause_start']))
 
             self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
             self.train_metrics.update('loss', loss.item())
             for met in self.metric_ftns:
-                self.train_metrics.update(met.__name__, met(output[1], target))
+                self.train_metrics.update(met.__name__, met(score, position))
 
             if batch_idx % self.log_step == 0:
                 data_loader.set_description('Train Epoch: {} {} Loss: {:.6f}'.format(epoch, self._progress(batch_idx), loss.item()))
@@ -84,15 +93,22 @@ class Trainer(BaseTrainer):
         with torch.no_grad():
             valid_data_loader = tqdm(self.valid_data_loader, desc='validating')
             for batch_idx, batch in enumerate(valid_data_loader):
-                data, target = batch['index'].to(self.device), batch['gold'].to(self.device)
+                input_ids, cause_start, cause_end, effect_start, effect_end = batch['input_ids'], batch['cause_start'], batch['cause_end'], batch['effect_start'], batch['effect_end']
+                input_ids = input_ids.to(self.device)
+                cause_start = cause_start.to(self.device)
+                cause_end = cause_end.to(self.device)
+                effect_start = effect_start.to(self.device)
+                effect_end = effect_end.to(self.device)
+                position = {'cause_start': cause_start, 'cause_end':cause_end, 'effect_start': effect_start, 'effect_end': effect_end}
 
-                output = self.model(data, target)
-                loss = output[0] 
+
+
+                loss, score = self.model(input_ids, **position)
 
                 self.writer.set_step((epoch - 1) * len(self.valid_data_loader) + batch_idx, 'valid')
                 self.valid_metrics.update('loss', loss.item())
                 for met in self.metric_ftns:
-                    self.valid_metrics.update(met.__name__, met(output[1], target))
+                    self.valid_metrics.update(met.__name__, met(score, position))
                 #self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
 
         # add histogram of model parameters to the tensorboard

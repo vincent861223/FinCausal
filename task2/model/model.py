@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from base import BaseModel
 
-from transformers import BertForSequenceClassification
+from transformers import BertForQuestionAnswering
 
 class MnistModel(BaseModel):
     def __init__(self, num_classes=10):
@@ -26,24 +26,23 @@ class MnistModel(BaseModel):
 class FinCausalBert(BaseModel):
     def __init__(self):
         super().__init__()
-        self.bert = BertForSequenceClassification.from_pretrained(
-   			 "bert-base-uncased", # Use the 12-layer BERT model, with an uncased vocab.
-   			 num_labels = 2, # The number of output labels--2 for binary classification.
-   			                 # You can increase this for multi-class tasks.   
-   			 output_attentions = False, # Whether the model returns attentions weights.
-   			 output_hidden_states = False, # Whether the model returns all hidden-states. 
-			)
+        self.cause_bert = BertForQuestionAnswering.from_pretrained('bert-base-cased')
+        self.effect_bert = BertForQuestionAnswering.from_pretrained('bert-base-cased')
         # self.fc = nn.Sequential(
         #                         nn.Linear(768, 256),
         #                         nn.ReLU(),
         #                         nn.Linear(256, 128),
         #                         nn.ReLU(),
-        #                         nn.Linear(128, 1),
-        #                         nn.Sigmoid()
+        #                         nn.Linear(128, 4),
         #                          )
        
-    def forward(self, x, labels=None):
-        output = self.bert(x, labels=labels)
-        #output = output[0].mean(1)
-        # output = self.fc(output)
-        return output
+    def forward(self, input_ids, cause_start=None, cause_end=None, effect_start=None, effect_end=None):
+        cause_output = self.cause_bert(input_ids=input_ids, start_positions=cause_start, end_positions=cause_end)
+        effect_output = self.effect_bert(input_ids=input_ids, start_positions=effect_start, end_positions=effect_end)
+        if(cause_start != None): 
+            loss = cause_output[0] + effect_output[0]
+            score = {'cause_start': cause_output[1], 'cause_end': cause_output[2], 'effect_start': effect_output[1], 'effect_end':effect_output[2]}
+            return loss, score
+        else: 
+            score = {'cause_start': cause_output[0], 'cause_end': cause_output[1], 'effect_start': effect_output[0], 'effect_end':effect_output[1]}
+            return score

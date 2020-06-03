@@ -4,3 +4,5 @@ data
 __pycache__
 tags
 *.un~
+.DS_Store
+._.DS_Store
