@@ -3,7 +3,7 @@ from base import BaseDataLoader
 from torch.utils.data import Dataset
 import torch
 from tqdm import tqdm
-from transformers import BertTokenizer
+from transformers import RobertaTokenizer
 
 
 class MnistDataLoader(BaseDataLoader):
@@ -34,7 +34,7 @@ class FinCausalDataset(Dataset):
         self.data = []
         self.train = train
         self.test = test
-        self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", do_lower_case=True)
+        self.tokenizer = RobertaTokenizer.from_pretrained("roberta-base", do_lower_case=True)
         self.loadData(datapath, train=self.train, test=self.test)
         
 
@@ -50,6 +50,8 @@ class FinCausalDataset(Dataset):
             lines = tqdm(lines, desc="Loading data")
             for line in lines:
                 token = line[:-1].split(";")
+                if len(token[1]) == 0:
+                    continue
                 if train:
                     self.data.append({"id": token[0], "text": token[1], "index": self.sentenceToIndex(token[1]), "gold": int(token[2])})
                 if test:

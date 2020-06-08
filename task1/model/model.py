@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from base import BaseModel
 
-from transformers import BertForSequenceClassification
+from transformers import RobertaForSequenceClassification
 
 class MnistModel(BaseModel):
     def __init__(self, num_classes=10):
@@ -26,13 +26,14 @@ class MnistModel(BaseModel):
 class FinCausalBert(BaseModel):
     def __init__(self):
         super().__init__()
-        self.bert = BertForSequenceClassification.from_pretrained(
-   			 "bert-base-uncased", # Use the 12-layer BERT model, with an uncased vocab.
+        self.bert = RobertaForSequenceClassification.from_pretrained(
+   			 "roberta-base", # Use the 12-layer BERT model, with an uncased vocab.
    			 num_labels = 2, # The number of output labels--2 for binary classification.
    			                 # You can increase this for multi-class tasks.   
    			 output_attentions = False, # Whether the model returns attentions weights.
    			 output_hidden_states = False, # Whether the model returns all hidden-states. 
 			)
+        # self.bert.config.__dict__['hidden_dropout_prob'] = 0.3
         # self.fc = nn.Sequential(
         #                         nn.Linear(768, 256),
         #                         nn.ReLU(),

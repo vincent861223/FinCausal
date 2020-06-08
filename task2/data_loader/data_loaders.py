@@ -4,7 +4,9 @@ from torch.utils.data import Dataset
 import torch
 from tqdm import tqdm
 from transformers import BertTokenizer
+import os
 
+os.environ['TORCH_HOME'] = '/tmp3/b05505019/cache'
 
 class MnistDataLoader(BaseDataLoader):
     """

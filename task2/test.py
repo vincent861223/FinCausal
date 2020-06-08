@@ -8,6 +8,7 @@ import model.metric as module_metric
 import model.model as module_arch
 from parse_config import ConfigParser
 from transformers import BertTokenizer
+import os
 
 
 def main(config, args):
@@ -16,7 +17,7 @@ def main(config, args):
     # setup data_loader instances
     data_loader = getattr(module_data, config['data_loader']['type'])(
         'data/train.csv',
-        batch_size=4,
+        batch_size=2,
         shuffle=False,
         validation_split=0.0,
         training=False,
@@ -59,12 +60,51 @@ def main(config, args):
                 pred[key] = torch.max(score[key], dim=-1)[1]
 
             for j, idx in enumerate(batch['id']) :
+                text = batch['text'][j]
                 cause = batch['tokened_text'][j][pred['cause_start'][j]: pred['cause_end'][j]]
-                cause = tokenizer.convert_tokens_to_string(cause)
-                effect = batch['tokened_text'][j][pred['effect_start'][j]: pred['effect_end'][j]]
-                effect = tokenizer.convert_tokens_to_string(effect)
-                f.write('{};{};{};{}\n'.format(idx, batch['text'][j], cause, effect))
+                cause = ' '.join(cause)
+                #cause_start, cause_end = getCharPosition(text, cause)
+                #cause = text[cause_start: cause_end]
 
+                effect = batch['tokened_text'][j][pred['effect_start'][j]: pred['effect_end'][j]]
+                effect = ' '.join(effect)
+                #effect_start, effect_end = getCharPosition(text, effect)
+                #effect = text[effect_start: effect_end]
+                f.write('{};{};{};{}\n'.format(idx, text, cause, effect))
+
+def getCharPosition(text, ref):
+    if(len(ref) < 3 ): return -1, -1
+    start = -1
+    end = -1
+    current = 0
+    head = ref[:3]
+    while current < len(text):
+        pos = [text.find(substring, current) for substring in head]
+        ok = True
+        for a, b in zip(pos[:-1], pos[1:]): 
+            ok &= (a <= b)
+        if ok:
+            start = pos[0]
+            break
+        elif -1 in pos:
+            break
+        else: 
+            current = pos[0] + len(head[0])
+
+    tail = ref[-3:]
+    while current < len(text):
+        pos = [text.find(substring, current) for substring in tail]
+        ok = True
+        for a, b in zip(pos[:-1], pos[1:]): 
+            ok &= (a <= b)
+        if ok:
+            end = pos[-1] + len(tail[-1])
+            break
+        elif -1 in pos:
+            break
+        else: 
+            current = pos[0] + len(tail[0])
+    return start, end
 
 
 if __name__ == '__main__':

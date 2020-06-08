@@ -1,8 +1,11 @@
 import torch.nn as nn
 import torch.nn.functional as F
 from base import BaseModel
+import os
 
 from transformers import BertForQuestionAnswering
+
+os.environ['TORCH_HOME'] = '/tmp3/b05505019/cache'
 
 class MnistModel(BaseModel):
     def __init__(self, num_classes=10):
