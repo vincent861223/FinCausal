@@ -67,7 +67,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--inrepo', type = str, default="fnp2020-fincausal-task2.csv", help= 'input repo')
+    parser.add_argument('--inrepo', type = str, default="data/train.csv", help= 'input repo')
 
     parser.add_argument('--idx', type = str, default="baseline", help= 'experience index')
     # ------------------------------------------------------------------------------------ #
@@ -290,7 +290,3 @@ if __name__ == '__main__':
 
     print('exact match: ', len(nl) - sum([i["diverge"] for i in nl if i['diverge']==1]), 'over', len(nl), ' total sentences)')
 
-    # # Print out task2 metrics
-    print('************************ task2 metrics ***************************', '\t')
-    print('**for task2 metrics, run  **')
-    print("python scoring/task2/task2_evaluate.py from-file --ref_file baseline/task2/models/**idx**/task2_ref_**idx**.csv baseline/task2/models/**idx**/task2_eval_**idx**.csv")

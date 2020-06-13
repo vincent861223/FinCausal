@@ -67,9 +67,10 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--inrepo', type = str, default="fnp2020-fincausal-task2.csv", help= 'input repo')
+    parser.add_argument('--inrepo', type = str, default="data/test.csv", help= 'input repo')
+    parser.add_argument('-o', '--output', type=str, default="task2_method2.csv", help= 'output file')
 
-    parser.add_argument('--idx', type = str, default="train", help= 'experience index')
+    parser.add_argument('--idx', type = str, default="baseline", help= 'experience index')
     # ------------------------------------------------------------------------------------ #
     #               if the arguments idx is used, assumes all following arguments          #
     # -------------------------------------------------------------------------------------#
@@ -242,10 +243,10 @@ if __name__ == '__main__':
     task2 = task2.drop(['index', 'IdxSplit'], axis=1)
     task2 = task2.sort_values('Index')
     #test = test.sort_values('Index')
-    task2.to_csv(os.path.join(modelpath_, ("result_2.csv")), sep = ';', index=False)
+    task2.to_csv(args.output, sep = ';', index=False)
     #test.to_csv(os.path.join(modelpath_, ("result.csv")), sep = ';', index=False)
 
-
+'''
 
     # # Print out other metrics
     print('************************ crf metrics ***************************', '\t')
@@ -295,8 +296,4 @@ if __name__ == '__main__':
     print('Recall: ', F1metrics[1])
 
     print('exact match: ', len(nl) - sum([i["diverge"] for i in nl if i['diverge']==1]), 'over', len(nl), ' total sentences)')
-
-    # # Print out task2 metrics
-    print('************************ task2 metrics ***************************', '\t')
-    print('**for task2 metrics, run  **')
-    print("python scoring/task2/task2_evaluate.py from-file --ref_file output/task2/models/**idx**/task2_ref_**idx**.csv output/task2/models/**idx**/task2_eval_**idx**.csv")
+'''

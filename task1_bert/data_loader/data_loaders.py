@@ -3,7 +3,7 @@ from base import BaseDataLoader
 from torch.utils.data import Dataset
 import torch
 from tqdm import tqdm
-from transformers import RobertaTokenizer
+from transformers import BertTokenizer
 
 
 class MnistDataLoader(BaseDataLoader):
@@ -34,7 +34,7 @@ class FinCausalDataset(Dataset):
         self.data = []
         self.train = train
         self.test = test
-        self.tokenizer = RobertaTokenizer.from_pretrained("roberta-base", do_lower_case=True)
+        self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", do_lower_case=True)
         self.loadData(datapath, train=self.train, test=self.test)
         
 
