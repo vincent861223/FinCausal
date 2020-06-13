@@ -32,7 +32,7 @@ def s2dict(lines, lot):
 
 
 
-def make_causal_input(lod, map_, silent=True):
+def make_causal_input(lod, map_, silent=True, test=False):
     #TODO replace hardcoded path by map_
 
     """
@@ -40,78 +40,110 @@ def make_causal_input(lod, map_, silent=True):
     :param map_: mapping of tags and values of interest, i.e. [('cause', 'C'), ('effect', 'E')]. The silent tags are by default taggerd as '_'
     :return: dict of list of tuples for each sentence
     """
-    dd = defaultdict(list)
-    dd_ = []
-    rx = re.compile(r"(\b[-']\b)|[\W_]")
-    rxlist = [r'("\\)', r'(\\")']
-    rx = re.compile('|'.join(rxlist))
-    for i in range(len(lod)):
-        line_ = lod[i]['sentence']
-        line = re.sub(rx, '', line_)
-        caus = lod[i]['cause']
-        caus = re.sub(rx, '', caus)
-        effe = lod[i]['effect']
-        effe = re.sub(rx, '', effe)
+    if test:
+        dd = defaultdict(list)
+        dd_ = []
+        rx = re.compile(r"(\b[-']\b)|[\W_]")
+        rxlist = [r'("\\)', r'(\\")']
+        rx = re.compile('|'.join(rxlist))
+        for i in range(len(lod)):
+            line_ = lod[i]['sentence']
+            line = re.sub(rx, '', line_)
 
-        d = defaultdict(list)
-        index = 0
-        for idx, w in enumerate(word_tokenize(line)):
-            index = line.find(w, index)
+            d = defaultdict(list)
+            index = 0
+            for idx, w in enumerate(word_tokenize(line)):
+                index = line.find(w, index)
 
-            if not index == -1:
-                d[idx].append([w, index])
-                #print(w, index)
-                index += len(w)
+                if not index == -1:
+                    d[idx].append([w, index])
+                    #print(w, index)
+                    index += len(w)
 
-        d_ = defaultdict(list)
-        for idx in d:
-            d_[idx].append([tuple([d[idx][0][0], '_']), d[idx][0][1]])
+            d_ = defaultdict(list)
+            for idx in d:
+                d_[idx].append([tuple([d[idx][0][0], '_']), d[idx][0][1]])
 
-        init_e = line.find(effe)
-        init_e = 0 if init_e == -1 else init_e
-        init_c = line.find(caus)
-        init_c = 0 if init_c == -1 else init_c
 
-        for c, cl in enumerate(word_tokenize(caus)):
-            #print('init_c', init_c)
-            init_c = line.find(cl, init_c)
-            #print('start Cause', init_c)
-            stop = line.find(cl, init_c) + len(cl)
-            word = line[init_c:stop]
-            #print('word', word.upper(), 'el', cl.upper())
+            dd[i].append(d_)
 
-            for idx in d_:
-                if int(init_c) == int(d_[idx][0][1]):
-                    und_ = defaultdict(list)
-                    und_[idx].append([tuple([word, 'C']), line.find(word, init_c)])
-                    d_[idx] = und_[idx]
+        for dict_ in dd:
+            dd_.append([item[0][0] for sub in [[j for j in i.values()] for i in lflatten(dd[dict_])] for item in sub])
 
-            init_c += len(cl)
-            #print('increment_c', init_c)
+        return dd_
+    else:
+        dd = defaultdict(list)
+        dd_ = []
+        rx = re.compile(r"(\b[-']\b)|[\W_]")
+        rxlist = [r'("\\)', r'(\\")']
+        rx = re.compile('|'.join(rxlist))
+        for i in range(len(lod)):
+            line_ = lod[i]['sentence']
+            line = re.sub(rx, '', line_)
+            caus = lod[i]['cause']
+            caus = re.sub(rx, '', caus)
+            effe = lod[i]['effect']
+            effe = re.sub(rx, '', effe)
 
-        for e, el in enumerate(word_tokenize(effe)):
-            #print('init_e', init_e)
-            init_e = line.find(el, init_e)
-            #print('start Effect', init_e)
-            stop = line.find(el, init_e) + len(el)
-            word = line[init_e:stop]
-            #print('word', word.upper(), 'el', el.upper())
+            d = defaultdict(list)
+            index = 0
+            for idx, w in enumerate(word_tokenize(line)):
+                index = line.find(w, index)
 
-            for idx in d_:
-                if int(init_e) == int(d_[idx][0][1]):
-                    und_ = defaultdict(list)
-                    und_[idx].append([tuple([word, 'E']), line.find(word, init_e)])
-                    d_[idx] = und_[idx]
+                if not index == -1:
+                    d[idx].append([w, index])
+                    #print(w, index)
+                    index += len(w)
 
-            init_e += len(word)
-            #print('init_e', init_e)
+            d_ = defaultdict(list)
+            for idx in d:
+                d_[idx].append([tuple([d[idx][0][0], '_']), d[idx][0][1]])
 
-        dd[i].append(d_)
+            init_e = line.find(effe)
+            init_e = 0 if init_e == -1 else init_e
+            init_c = line.find(caus)
+            init_c = 0 if init_c == -1 else init_c
 
-    for dict_ in dd:
-        dd_.append([item[0][0] for sub in [[j for j in i.values()] for i in lflatten(dd[dict_])] for item in sub])
+            for c, cl in enumerate(word_tokenize(caus)):
+                #print('init_c', init_c)
+                init_c = line.find(cl, init_c)
+                #print('start Cause', init_c)
+                stop = line.find(cl, init_c) + len(cl)
+                word = line[init_c:stop]
+                #print('word', word.upper(), 'el', cl.upper())
 
-    return dd_
+                for idx in d_:
+                    if int(init_c) == int(d_[idx][0][1]):
+                        und_ = defaultdict(list)
+                        und_[idx].append([tuple([word, 'C']), line.find(word, init_c)])
+                        d_[idx] = und_[idx]
+
+                init_c += len(cl)
+                #print('increment_c', init_c)
+
+            for e, el in enumerate(word_tokenize(effe)):
+                #print('init_e', init_e)
+                init_e = line.find(el, init_e)
+                #print('start Effect', init_e)
+                stop = line.find(el, init_e) + len(el)
+                word = line[init_e:stop]
+                #print('word', word.upper(), 'el', el.upper())
+
+                for idx in d_:
+                    if int(init_e) == int(d_[idx][0][1]):
+                        und_ = defaultdict(list)
+                        und_[idx].append([tuple([word, 'E']), line.find(word, init_e)])
+                        d_[idx] = und_[idx]
+
+                init_e += len(word)
+                #print('init_e', init_e)
+
+            dd[i].append(d_)
+
+        for dict_ in dd:
+            dd_.append([item[0][0] for sub in [[j for j in i.values()] for i in lflatten(dd[dict_])] for item in sub])
+
+        return dd_
 
 def nltkPOS(loft):
 
@@ -201,7 +233,7 @@ if __name__ == '__main__':
 
     import pandas as pd
 
-    df = pd.read_csv("./data/fnp2020-fincausal2-task2.csv", delimiter=';', header=0)
+    df = pd.read_csv('fnp2020-fincausal-task2.csv', delimiter=';', header=0)
 
     print(df.head())
     print(df.columns)
@@ -213,6 +245,7 @@ if __name__ == '__main__':
         dict_ = s2dict(list_, map1)
         lodict_.append(dict_)
 
+    #print('lodict_ : ',len(lodict_)) # len = 641
     print(lodict_[1])
 
     map_ = [('cause', 'C'), ('effect', 'E')]

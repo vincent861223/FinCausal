@@ -40,7 +40,10 @@ def make_data(df):
         lodict_.append(dict_)
 
     map_ = [('cause', 'C'), ('effect', 'E')]
-    hometags = make_causal_input(lodict_, map_)
+    ##
+
+    ##
+    hometags = make_causal_input(lodict_, map_, test=True)
 
     ds = [[(k, v) for k, v in x_] for x_ in hometags]
     logging.debug(pformat(ds))
@@ -64,9 +67,9 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--inrepo', type = str, default="data/test.csv", help= 'input repo')
+    parser.add_argument('--inrepo', type = str, default="fnp2020-fincausal-task2.csv", help= 'input repo')
 
-    parser.add_argument('--idx', type = str, default="baseline", help= 'experience index')
+    parser.add_argument('--idx', type = str, default="train", help= 'experience index')
     # ------------------------------------------------------------------------------------ #
     #               if the arguments idx is used, assumes all following arguments          #
     # -------------------------------------------------------------------------------------#
@@ -83,75 +86,85 @@ if __name__ == '__main__':
     #                                       Make data                                      #
     # -------------------------------------------------------------------------------------#
 
-    df = pd.read_csv(args.inrepo, delimiter=';', engine='python', header=0)
-    print(df.head)
+    try:
+        df = pd.read_csv(args.inrepo, delimiter='; ', engine='python', header=0)
+        df['IdxSplit'] = df.Index.apply(lambda x: ''.join(x.split(".")[0:2]))
+    except:
+        df = pd.read_csv(args.inrepo, delimiter=';', engine='python', header=0)
+        df['IdxSplit'] = df.Index.apply(lambda x: ''.join(x.split(".")[0:2]))
     # Make train and test sets keeping multiple cause / effects blocks together.
-    # df['IdxSplit'] = df.Index.apply(lambda x: ''.join(x.split(".")[0:2]))
-    # df.set_index('IdxSplit', inplace=True)
+    
+    df.set_index('IdxSplit', inplace=True)
     np.random.seed(0)
+    #testrows = np.random.choice(df.index.values, int(len(df) / 3))
+    #test = df.loc[testrows].drop_duplicates(subset='Index')
+    #train = df.drop(test.index)
     test = df
 
 
-    # X_train, y_train, _ = make_data(train)
+    #X_train, y_train, _ = make_data(train)
     X_test, y_test, tokens_test = make_data(test)
     print(tokens_test)
 
     # Declare trainer
-    # trainer = pycrfsuite.Trainer(verbose=True)
+    #trainer = pycrfsuite.Trainer(verbose=True)
 
     # Submit training data to the trainer
-    # for xseq, yseq in zip(X_train, y_train):
-    #     trainer.append(xseq, yseq)
+    #for xseq, yseq in zip(X_train, y_train):
+    #    trainer.append(xseq, yseq)
 
 
     # ------------------------------------------------------------------------------------ #
     #                                   Set model parameters                               #
     # -------------------------------------------------------------------------------------#
     # trainer.select("l2sgd")
-    #if args.idx:
+    """
+    if args.idx:
 
-    #    trainer.set_params({
-    #        'c1': args.c1,
-    #        'feature.minfreq': args.minfreq,
-    #        'feature.possible_states': args.featstate,
-    #        'c2': args.c2,
-    #        'max_iterations': args.maxiter,
-    #        'feature.possible_transitions': args.trans
-    #    })
+        trainer.set_params({
+            'c1': args.c1,
+            'feature.minfreq': args.minfreq,
+            'feature.possible_states': args.featstate,
+            'c2': args.c2,
+            'max_iterations': args.maxiter,
+            'feature.possible_transitions': args.trans
+        })
 
-    #else:
-    #    trainer.set_params({
-    #        'c1': 0.1,
-    #        'feature.minfreq': 0.7,
-    #        'feature.possible_states': True,
-    #        'c2': 0.01,
-    #        'max_iterations': "3000",
-    #        'feature.possible_transitions': False
-    #    })
+    else:
+        trainer.set_params({
+            'c1': 0.1,
+            'feature.minfreq': 0.7,
+            'feature.possible_states': True,
+            'c2': 0.01,
+            'max_iterations': "3000",
+            'feature.possible_transitions': False
+        })
+    """
 
 
     # ------------------------------------------------------------------------------------ #
     #                                         Train                                        #
     # -------------------------------------------------------------------------------------#
-
+    
     # The model will be saved to ./models when training is finished, with crf_args.idx.model name
-    if not os.path.exists('models'):
-        os.makedirs("models")
-    modelpath_ = os.path.join("models", str(args.idx))
+    if not os.path.exists('output/task2/models'):
+        os.makedirs("output/task2/models")
+    modelpath_ = os.path.join("output/task2/models", str(args.idx))
+    """
     if not os.path.exists(modelpath_):
         os.makedirs(modelpath_)
-    # trainer.train(os.path.join(modelpath_, ("crf_" + str(args.idx)) + ".model"))
+    trainer.train(os.path.join(modelpath_, ("crf_" + str(args.idx)) + ".model"))
 
-    # # The data will be dumped to ./models when training is finished, with data_args.idx.dat name
-    # data_list = [X_train, X_test, y_train, y_test]
+    # The data will be dumped to ./models when training is finished, with data_args.idx.dat name
+    data_list = [X_train, X_test, y_train, y_test]
 
-    # if not os.path.exists('data'):
-    #     os.makedirs("data")
-    # datapath_ = os.path.join("data", str(args.idx))
-    # if not os.path.exists(datapath_):
-    #     os.makedirs(datapath_)
-    # pickle.dump(data_list, open(os.path.join(datapath_, ("data_" + str(args.idx)) + ".dat"), "wb"))
-
+    if not os.path.exists('baseline/task2/data'):
+        os.makedirs("baseline/task2/data")
+    datapath_ = os.path.join("baseline/task2/data", str(args.idx))
+    if not os.path.exists(datapath_):
+        os.makedirs(datapath_)
+    pickle.dump(data_list, open(os.path.join(datapath_, ("data_" + str(args.idx)) + ".dat"), "wb"))
+    """
     # Declare a tagger to predict tags in new text entries
     tagger = pycrfsuite.Tagger()
 
@@ -228,62 +241,62 @@ if __name__ == '__main__':
     task2 = pd.concat([idx, text, tmp], axis=1)
     task2 = task2.drop(['index', 'IdxSplit'], axis=1)
     task2 = task2.sort_values('Index')
-    test = test.sort_values('Index')
-    task2.to_csv(os.path.join(modelpath_, ("task2_eval_" + str(args.idx)) + ".csv"), sep = ';', index=False)
-    test.to_csv(os.path.join(modelpath_, ("task2_ref_" + str(args.idx)) + ".csv"), sep = ';', index=False)
+    #test = test.sort_values('Index')
+    task2.to_csv(os.path.join(modelpath_, ("result_2.csv")), sep = ';', index=False)
+    #test.to_csv(os.path.join(modelpath_, ("result.csv")), sep = ';', index=False)
 
 
 
-    # # # Print out other metrics
-    # print('************************ crf metrics ***************************', '\t')
+    # # Print out other metrics
+    print('************************ crf metrics ***************************', '\t')
 
-    # trainer.logparser.last_iteration
-    # info = tagger.info()
+    ##ttrainer.logparser.last_iteration
+    info = tagger.info()
 
-    # def print_transitions(trans_features):
-    #     for (label_from, label_to), weight in trans_features:
-    #         print("%-6s -> %-7s %0.6f" % (label_from, label_to, weight))
+    def print_transitions(trans_features):
+        for (label_from, label_to), weight in trans_features:
+            print("%-6s -> %-7s %0.6f" % (label_from, label_to, weight))
 
-    # print("Top likely transitions:")
-    # print_transitions(Counter(info.transitions).most_common(3))
+    print("Top likely transitions:")
+    print_transitions(Counter(info.transitions).most_common(3))
 
-    # print("\nTop unlikely transitions:")
-    # print_transitions(Counter(info.transitions).most_common()[-3:])
+    print("\nTop unlikely transitions:")
+    print_transitions(Counter(info.transitions).most_common()[-3:])
 
-    # print("all transitions:")
-    # print_transitions(Counter(info.transitions).most_common())
+    print("all transitions:")
+    print_transitions(Counter(info.transitions).most_common())
 
-    # def print_state_features(state_features):
-    #     for (attr, label), weight in state_features:
-    #         print("%0.6f %-6s %s" % (weight, label, attr))
-
-
-    # print("Top positive:")
-    # print_state_features(Counter(info.state_features).most_common(20))
-
-    # print("\nTop negative:")
-    # print_state_features(Counter(info.state_features).most_common()[-20:])
+    def print_state_features(state_features):
+        for (attr, label), weight in state_features:
+            print("%0.6f %-6s %s" % (weight, label, attr))
 
 
-    # # # Print out the classification report
-    # print('************************ classification report ***************************', '\t')
-    # print(classification_report(
-    #     truths, predictions,
-    #     target_names=["_", "C", "E"]))
+    print("Top positive:")
+    print_state_features(Counter(info.state_features).most_common(20))
 
-    # # # Print out token metrics
-    # print('************************ tokenized metrics ***************************', '\t')
+    print("\nTop negative:")
+    print_state_features(Counter(info.state_features).most_common()[-20:])
 
-    # F1metrics = precision_recall_fscore_support(truths, predictions, average='weighted')
 
-    # #precision, recall, f1
-    # print('F1score:', F1metrics[2])
-    # print('Precision: ', F1metrics[0])
-    # print('Recall: ', F1metrics[1])
+    # # Print out the classification report
+    print('************************ classification report ***************************', '\t')
+    print(classification_report(
+        truths, predictions,
+        target_names=["_", "C", "E"]))
 
-    # print('exact match: ', len(nl) - sum([i["diverge"] for i in nl if i['diverge']==1]), 'over', len(nl), ' total sentences)')
+    # # Print out token metrics
+    print('************************ tokenized metrics ***************************', '\t')
 
-    # # # Print out task2 metrics
-    # print('************************ task2 metrics ***************************', '\t')
-    # print('**for task2 metrics, run  **')
-    # print("python scoring/task2/task2_evaluate.py from-file --ref_file baseline/task2/models/**idx**/task2_ref_**idx**.csv baseline/task2/models/**idx**/task2_eval_**idx**.csv")
+    F1metrics = precision_recall_fscore_support(truths, predictions, average='weighted')
+
+    #precision, recall, f1
+    print('F1score:', F1metrics[2])
+    print('Precision: ', F1metrics[0])
+    print('Recall: ', F1metrics[1])
+
+    print('exact match: ', len(nl) - sum([i["diverge"] for i in nl if i['diverge']==1]), 'over', len(nl), ' total sentences)')
+
+    # # Print out task2 metrics
+    print('************************ task2 metrics ***************************', '\t')
+    print('**for task2 metrics, run  **')
+    print("python scoring/task2/task2_evaluate.py from-file --ref_file output/task2/models/**idx**/task2_ref_**idx**.csv output/task2/models/**idx**/task2_eval_**idx**.csv")

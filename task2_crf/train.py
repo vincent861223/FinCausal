@@ -40,6 +40,9 @@ def make_data(df):
         lodict_.append(dict_)
 
     map_ = [('cause', 'C'), ('effect', 'E')]
+    ##
+
+    ##
     hometags = make_causal_input(lodict_, map_)
 
     ds = [[(k, v) for k, v in x_] for x_ in hometags]
@@ -64,7 +67,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--inrepo', type = str, default="data/train.csv", help= 'input repo')
+    parser.add_argument('--inrepo', type = str, default="fnp2020-fincausal-task2.csv", help= 'input repo')
 
     parser.add_argument('--idx', type = str, default="baseline", help= 'experience index')
     # ------------------------------------------------------------------------------------ #
@@ -83,13 +86,15 @@ if __name__ == '__main__':
     #                                       Make data                                      #
     # -------------------------------------------------------------------------------------#
 
-    df = pd.read_csv(args.inrepo, delimiter=';', engine='python', header=0)
-    print(df.head)
+    try:
+        df = pd.read_csv(args.inrepo, delimiter=';', engine='python', header=0)
+    except:
+        df = pd.read_csv(args.inrepo, delimiter='; ', engine='python', header=0)
     # Make train and test sets keeping multiple cause / effects blocks together.
     df['IdxSplit'] = df.Index.apply(lambda x: ''.join(x.split(".")[0:2]))
     df.set_index('IdxSplit', inplace=True)
     np.random.seed(0)
-    testrows = np.random.choice(df.index.values, int(len(df) / 3))
+    testrows = np.random.choice(df.index.values, int(len(df) / 5))
     test = df.loc[testrows].drop_duplicates(subset='Index')
     train = df.drop(test.index)
 
@@ -137,9 +142,9 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------------------#
 
     # The model will be saved to ./models when training is finished, with crf_args.idx.model name
-    if not os.path.exists('models'):
-        os.makedirs("models")
-    modelpath_ = os.path.join("models", str(args.idx))
+    if not os.path.exists('output/task2/models'):
+        os.makedirs("output/task2/models")
+    modelpath_ = os.path.join("output/task2/models", str(args.idx))
     if not os.path.exists(modelpath_):
         os.makedirs(modelpath_)
     trainer.train(os.path.join(modelpath_, ("crf_" + str(args.idx)) + ".model"))
@@ -147,9 +152,9 @@ if __name__ == '__main__':
     # The data will be dumped to ./models when training is finished, with data_args.idx.dat name
     data_list = [X_train, X_test, y_train, y_test]
 
-    if not os.path.exists('data'):
-        os.makedirs("data")
-    datapath_ = os.path.join("data", str(args.idx))
+    if not os.path.exists('output/task2/data'):
+        os.makedirs("output/task2/data")
+    datapath_ = os.path.join("output/task2/data", str(args.idx))
     if not os.path.exists(datapath_):
         os.makedirs(datapath_)
     pickle.dump(data_list, open(os.path.join(datapath_, ("data_" + str(args.idx)) + ".dat"), "wb"))
