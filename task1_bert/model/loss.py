@@ -3,7 +3,8 @@ import torch.nn as nn
 import torch
 
 def crossEntropy_loss(output, target):
-    weight = torch.tensor([0.2, 0.8]).to(output.device)
+    #weight = torch.tensor([0.2, 0.8]).to(output.device)
+    weight = None
     return nn.CrossEntropyLoss(weight=weight)(output, target)
 
 def nll_loss(output, target):
