@@ -6,7 +6,7 @@ filelock==3.0.12
 future==0.18.2
 idna==2.9
 joblib==0.14.1
-numpy==1.18.4
+numpy==1.22.0
 pandas==1.0.3
 Pillow==7.1.2
 protobuf==3.11.3
